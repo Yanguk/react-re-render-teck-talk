@@ -84,7 +84,7 @@ function Counter() {
 
 <v-click>
 
-<iframe src="https://stackblitz.com/edit/vitejs-vite-ccptunzv?embed=1&file=src%2FClock.jsx"
+<iframe src="https://stackblitz.com/edit/vitejs-vite-ccptunzv?embed=1&file=src%2FClock.jsx&theme=dark"
   style="width:100%; height:280px; border:0; border-radius:6px; overflow:hidden;"
 ></iframe>
 
@@ -210,6 +210,87 @@ class: text-center
     <div class="mt-6">Context API</div>
   </v-clicks>
 </div>
+
+---
+
+# Children 패턴이란?
+
+<v-clicks>
+
+- React의 기본 기능을 활용한 최적화 패턴
+- 부모 컴포넌트가 리렌더링되어도 children은 리렌더링되지 않음
+
+</v-clicks>
+
+---
+
+# 일반적인 패턴 (문제 상황)
+
+```tsx {all|2,7-8,12-17}
+function ExpensiveChild() {
+  console.log('ExpensiveChild rendered');
+  return <div>비싼 연산을 하는 컴포넌트</div>;
+}
+
+function Parent() {
+  const [count, setCount] = useState(0);
+  console.log('Parent rendered');
+
+  return (
+    <div>
+      <button onClick={() => setCount(count + 1)}>
+        Count: {count}
+      </button>
+
+      {/* count 변경시 매번 실행됨! */}
+      <ExpensiveChild />
+    </div>
+  );
+}
+```
+
+<v-click>
+
+<div class="mt-4 p-3 bg-red-500/10 rounded border-l-4 border-red-500">
+  count가 변경될 때마다 ExpensiveChild도 리렌더링됩니다
+</div>
+
+</v-click>
+
+---
+
+# Children 패턴 적용 (해결)
+
+```tsx {all|2-3,7-10|16-23}
+function Parent({ children }) {
+  const [count, setCount] = useState(0);
+  console.log('Parent rendered');
+
+  return (
+    <div>
+      <button onClick={() => setCount(count + 1)}>
+        Count: {count}
+      </button>
+      {children}
+    </div>
+  );
+}
+
+// 사용
+function App() {
+  return (
+    <Parent>
+      {/* count가 변경 되어도 리렌더링 되지 않음 */}
+      <ExpensiveChild />
+    </Parent>
+  );
+}
+```
+---
+
+<iframe src="https://stackblitz.com/edit/vitejs-vite-re4d2gss?embed=1&file=src%2FApp.jsx&theme=dark"
+  style="width:100%; height:100%; border:0;"
+></iframe>
 
 ---
 
