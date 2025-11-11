@@ -17,7 +17,11 @@ drawings:
 transition: slide-left
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
+# custom css
+css: unocss
 ---
+
+<style src="./style.css"></style>
 
 # React Re-rendering
 
@@ -150,7 +154,7 @@ function Parent() {
 
 # useMemo & useCallback 예시
 
-```tsx {all|6-9|10-14}
+```tsx {all|5-9|10-14}
 function Parent() {
   const [count, setCount] = useState(0);
   const [text, setText] = useState('');
@@ -210,6 +214,11 @@ class: text-center
     <div class="mt-6">Context API</div>
   </v-clicks>
 </div>
+
+---
+layout: section
+---
+# Children
 
 ---
 
@@ -293,4 +302,366 @@ function App() {
 ></iframe>
 
 ---
+layout: section
+---
+# Context API
 
+---
+layout: center
+---
+
+# Context API란?
+
+<v-clicks>
+
+<div class="text-xl">
+
+- 컴포넌트 트리 전체에 데이터를 제공하는 React의 내장 기능
+- Props drilling 없이 깊은 레벨의 컴포넌트에 데이터 전달 가능
+- 전역 상태 관리의 기본이 되는 패턴
+
+</div>
+
+</v-clicks>
+
+---
+
+# Context API 기본 사용법
+
+```tsx{all|1-2|4-15|16-25|27-30}
+// 1. Context 생성
+const ThemeContext = createContext(null);
+
+// 2. Provider로 값 제공
+function App() {
+  const [theme, setTheme] = useState('light');
+  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <Layout />
+    </ThemeContext.Provider>
+  );
+}
+
+// 3. useContext로 값 사용
+const useTheme = () => {
+  const context = useContext(ThemeContext);
+
+  if (!context) {
+    throw new Error('ThemeProvider와 같이 사용해주세요')
+  }
+
+  return context;
+}
+
+function Button() {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  return <button onClick={toggleTheme}>{theme}</button>;
+}
+```
+
+---
+
+# Children + Context 조합
+
+```tsx{all|1-22|24-36|37-42|43-47|49-63|all}
+// 보일러플레이트 작성
+const CountContext = createContext(null);
+
+function CountProvider({ children }) {
+  const [count, setCount] = useState(0);
+
+  return (
+    <CountContext.Provider value={{ count, setCount }}>
+      {children}
+    </CountContext.Provider>
+  );
+}
+
+const useCount = () => {
+  const context = useContext(CountContext);
+
+  if (!context) {
+    throw new Error('CountProvider와 같이 사용해주세요')
+  }
+
+  return context;
+}
+
+function HeavyComponent({ label, children }) {
+  console.log(`⚙️ HeavyComponent (${label}) 리렌더링`);
+
+  const renderTime = new Date().toLocaleTimeString();
+
+  return (
+    <div>
+      <p>무거운 컴포넌트 {label}, 마지막 렌더링: {renderTime}</p>
+      {children}
+    </div>
+  )
+}
+
+function CountHeader () {
+  const { count } = useCount()
+
+  return <h2>현재 카운트: {count}</h2>
+}
+
+function CountButton () {
+  const { setCount } = useCount()
+
+  return <button onClick={() => setCount(prev => prev + 1)}>up!</button>
+}
+
+function App() {
+  return (
+    <CountProvider>
+      <HeavyComponent label="header">
+        <CountHeader />
+      </HeavyComponent>
+
+      <HeavyComponent label="body">
+        <CountButton />
+      </HeavyComponent>
+
+      <HeavyComponent label="footer" />
+    </CountProvider>
+  );
+}
+
+```
+
+---
+
+<iframe src="https://stackblitz.com/edit/vitejs-vite-psuwvkbg?embed=1&file=src%2FApp.jsx&theme=dark"
+  style="width:100%; height:100%; border:0;"
+></iframe>
+
+---
+layout: center
+---
+
+# Context API의 단점
+
+### 불필요한 리렌더링
+  - Selector 기능이 없어서 Context의 값이 변경되면, 해당 Context를 구독하는 모든 컴포넌트가 리렌더링됨.
+
+<br />
+
+
+<v-click>
+
+```tsx
+function CountHeader () {
+  const { count } = useCount()
+
+  return <h2>현재 카운트: {count}</h2>
+}
+
+/**
+ * 해당 컴포넌트는 setCount만 사용함에도 불구하고
+ * count가 업데이트 되면 리렌더링이 됨.
+ */
+function CountButton () {
+  const { setCount } = useCount()
+
+  return <button onClick={() => setCount(prev => prev + 1)}>up!</button>
+}
+```
+
+</v-click>
+
+---
+layout: center
+---
+
+https://github.com/facebook/react/pull/20646
+
+<br />
+
+<img src="/react-selector.png" style="height: 400px;" alt="리액트 pr" />
+
+---
+
+# 다른 방법
+
+<br />
+
+<v-click>
+
+### 1. `useSyncExternalStore`을 사용해서 구현하기
+https://ko.react.dev/reference/react/useSyncExternalStore
+
+외부 스토어에 대한 구독을 관리하고, 상태 변경에 따라 컴포넌트를 리렌더링하는 훅
+> zustant는 과거에는 useReducer로 구현했다가 비교적 최근 useSyncExternalStore로 변경하였음
+
+</v-click>
+
+
+<v-click>
+
+<br />
+
+### 2. 외부 라이브러리 사용하기 (zustant, jotai, use-context-selector, ...)
+
+</v-click>
+
+---
+
+# 덤보에서 사용하는 방식 Zustand + Context-API
+
+```tsx{all|1-2|4-8|10-17|19-23|25-29|30-35|36-50|51-65}
+import React, { createContext, useContext } from 'react';
+import { createStore, useStore } from 'zustand';
+
+const createCountStore = () =>
+  createStore((set) => ({
+    count: 0,
+    setCount: () => set((state) => ({ count: state.count + 1 })),
+  }));
+
+const CountContext = createContext(null);
+
+function CountProvider({ children }) {
+  const store = React.useRef(createCountStore()).current;
+  return (
+    <CountContext.Provider value={store}>{children}</CountContext.Provider>
+  );
+}
+
+const useCountStore = (selector) => {
+  const store = useContext(CountContext);
+  if (!store) throw new Error('CountProvider 안에서 사용해주세요');
+  return useStore(store, selector);
+};
+
+function CountHeader() {
+  const count = useCountStore((state) => state.count);
+  console.log('🧠 CountHeader 렌더링');
+  return <h2>현재 카운트: {count}</h2>;
+}
+
+function CountButton() {
+  const setCount = useCountStore((state) => state.setCount);
+  console.log('🧠 CountButton 렌더링');
+  return <button onClick={setCount}>up!</button>;
+}
+
+function HeavyComponent({ label, children }) {
+  console.log(`⚙️ HeavyComponent (${label}) 리렌더링`);
+  const renderTime = new Date().toLocaleTimeString();
+
+  return (
+    <div style={{ border: '1px solid #ccc', margin: '8px', padding: '8px' }}>
+      <p>
+        무거운 컴포넌트 {label}, 마지막 렌더링: {renderTime}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <CountProvider>
+      <HeavyComponent label="header">
+        <CountHeader />
+      </HeavyComponent>
+
+      <HeavyComponent label="body">
+        <CountButton />
+      </HeavyComponent>
+
+      <HeavyComponent label="footer" />
+    </CountProvider>
+  );
+}
+```
+
+---
+
+<iframe src="https://stackblitz.com/edit/vitejs-vite-gfvhiqvd?embed=1&file=src%2FApp.jsx&theme=dark"
+  style="width:100%; height:100%; border:0;"
+></iframe>
+
+---
+layout: section
+---
+
+# Radix-ui
+Children과 Context-API를 적극 활용하는 UI 패키지
+
+---
+
+# Radix UI의 Context 활용 패턴
+
+<v-click>
+
+<br />
+
+### 1. `import { Slot } from '@radix-ui/react-slot';`
+컴포넌트의 루트 엘리먼트를 다른 엘리먼트로 병합
+
+```tsx
+// 사용 예시
+<Slot className='flex ...'>
+  <p>슬롯 예시</p>
+<Slot>
+```
+
+```tsx
+// 렌더링 결과
+<p className='flex ...'>슬롯 예시</p>
+```
+
+</v-click>
+
+<v-click>
+
+<br />
+
+### 2. `import { createContextScope } from '@radix-ui/react-context';`
+여러 Context가 중첩될 때 올바른 Context를 찾아오는 유틸
+
+</v-click>
+
+---
+
+# Radix-ui 사용예시
+
+```tsx{all}
+import * as Select from '@radix-ui/react-select';
+
+function CustomSelect() {
+  return (
+    <Select.Root>
+      <Select.Trigger>
+        <Select.Value placeholder="선택하세요" />
+        <Select.Icon />
+      </Select.Trigger>
+
+      <Select.Portal>
+        <Select.Content>
+          <Select.Viewport>
+            <Select.Item value="apple">사과</Select.Item>
+            <Select.Item value="banana">바나나</Select.Item>
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+```
+
+---
+layout: center
+---
+
+<div className="text-center">
+
+# 감사합니다
+
+## Q & A
+
+</div>
