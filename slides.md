@@ -5,7 +5,7 @@ theme: default
 # like them? see https://unsplash.com/collections/94734566/slidev
 # background: https://cover.sli.dev
 # some information about your slides (markdown enabled)
-title: React Re-rendering
+title: React Re-rendering - yanguk
 info: |
   tech-talk
 # apply UnoCSS classes to the current slide
