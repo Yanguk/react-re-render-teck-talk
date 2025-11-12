@@ -46,8 +46,9 @@ https://ko.react.dev/learn/render-and-commit
 # Trigger 조건
 
 1. 컴포넌트의 초기 렌더링인 경우
+
 ```tsx {0|all|2|0}
-const root = createRoot(document.getElementById('root'))
+const root = createRoot(document.getElementById("root"));
 root.render(<App />);
 ```
 
@@ -78,7 +79,7 @@ function Counter() {
 
 <v-clicks>
 
-- Render는 React에서 컴포넌트를 호츨하는 것
+- Render는 React에서 컴포넌트를 호출하는 것
 - Commit은 DOM이 최신 렌더링 출력과 일치하도록 하는 것
   - 이때 React는 렌더링 간에 차이가 있는 경우에만 DOM 노드를 변경한다.
 
@@ -98,6 +99,7 @@ function Counter() {
 layout: section
 ---
 # 최적화 하기
+
 Render 단계를 최소화 하기
 
 ---
@@ -109,12 +111,15 @@ Render 단계를 최소화 하기
 <v-clicks>
 
 ## <span class="text-purple-400">React.memo</span>
+
 컴포넌트의 props가 변경되지 않으면 리렌더링을 방지
 
 ## <span class="text-blue-400">useMemo</span>
+
 계산 비용이 높은 값을 메모이제이션
 
 ## <span class="text-blue-400">useCallback</span>
+
 함수를 메모이제이션하여 불필요한 재생성 방지
 
 </v-clicks>
@@ -137,7 +142,7 @@ const ExpensiveComponent = React.memo(({ data }) => {
 
 function Parent() {
   const [count, setCount] = useState(0);
-  const data = { value: 100 };
+  const data = useMemo(() => ({ value: 100 }), []);
 
   return (
     <div>
@@ -156,17 +161,17 @@ function Parent() {
 ```tsx {all|5-9|10-14}
 function Parent() {
   const [count, setCount] = useState(0);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
 
   // 복잡한 계산 결과를 메모이제이션
   const expensiveValue = useMemo(() => {
     return heavyCalculation(count);
-  // 의존성 배열의 값이 바꿜때 만 재 계산됨
+    // 의존성 배열의 값이 바꿜때 만 재 계산됨
   }, [count]);
 
   // 함수를 메모이제이션
   const handleClick = useCallback(() => {
-    console.log('Clicked!');
+    console.log("Clicked!");
   }, []);
 
   return (
@@ -236,19 +241,17 @@ layout: section
 
 ```tsx {all|2,7-8,12-17}
 function ExpensiveChild() {
-  console.log('ExpensiveChild rendered');
+  console.log("ExpensiveChild rendered");
   return <div>비싼 연산을 하는 컴포넌트</div>;
 }
 
 function Parent() {
   const [count, setCount] = useState(0);
-  console.log('Parent rendered');
+  console.log("Parent rendered");
 
   return (
     <div>
-      <button onClick={() => setCount(count + 1)}>
-        Count: {count}
-      </button>
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
 
       {/* count 변경시 매번 실행됨! */}
       <ExpensiveChild />
@@ -272,13 +275,11 @@ function Parent() {
 ```tsx {all|2-3,7-10|16-23}
 function Parent({ children }) {
   const [count, setCount] = useState(0);
-  console.log('Parent rendered');
+  console.log("Parent rendered");
 
   return (
     <div>
-      <button onClick={() => setCount(count + 1)}>
-        Count: {count}
-      </button>
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
       {children}
     </div>
   );
@@ -327,18 +328,18 @@ layout: center
 
 # Context API 기본 사용법
 
-```tsx{all|1-2|4-15|16-25|27-30}
+```tsx{all|1-2|4-15|16-25|27-30|all}
 // 1. Context 생성
 const ThemeContext = createContext(null);
 
 // 2. Provider로 값 제공
-function App() {
+function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('light');
   const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <Layout />
+      {children}
     </ThemeContext.Provider>
   );
 }
@@ -354,9 +355,18 @@ const useTheme = () => {
   return context;
 }
 
-function Button() {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+function ThemeButton() {
+  const { theme, toggleTheme } = useTheme();
   return <button onClick={toggleTheme}>{theme}</button>;
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ThemeButton />
+      {...}
+    </ThemeProvider>
+  );
 }
 ```
 
@@ -444,28 +454,28 @@ layout: center
 # Context API의 단점
 
 ### 불필요한 리렌더링
-  - Selector 기능이 없어서 Context의 값이 변경되면, 해당 Context를 구독하는 모든 컴포넌트가 리렌더링됨.
+
+- Selector 기능이 없어서 Context의 값이 변경되면, 해당 Context를 구독하는 모든 컴포넌트가 리렌더링됨.
 
 <br />
-
 
 <v-click>
 
 ```tsx
-function CountHeader () {
-  const { count } = useCount()
+function CountHeader() {
+  const { count } = useCount();
 
-  return <h2>현재 카운트: {count}</h2>
+  return <h2>현재 카운트: {count}</h2>;
 }
 
 /**
  * 해당 컴포넌트는 setCount만 사용함에도 불구하고
  * count가 업데이트 되면 리렌더링이 됨.
  */
-function CountButton () {
-  const { setCount } = useCount()
+function CountButton() {
+  const { setCount } = useCount();
 
-  return <button onClick={() => setCount(prev => prev + 1)}>up!</button>
+  return <button onClick={() => setCount((prev) => prev + 1)}>up!</button>;
 }
 ```
 
@@ -493,10 +503,10 @@ https://github.com/facebook/react/pull/20646
 https://ko.react.dev/reference/react/useSyncExternalStore
 
 외부 스토어에 대한 구독을 관리하고, 상태 변경에 따라 컴포넌트를 리렌더링하는 훅
+
 > zustant는 과거에는 useReducer로 구현했다가 비교적 최근 useSyncExternalStore로 변경하였음
 
 </v-click>
-
 
 <v-click>
 
@@ -599,7 +609,6 @@ layout: two-cols-header
 <v-click>
 
 - **장점**
-
   - 간단한 사용법
 
 <br />
@@ -617,7 +626,6 @@ layout: two-cols-header
 <v-click>
 
 - **장점**
-
   - 리액트의 자연스러운 흐름대로 최적화 가능
 
 <br />
@@ -629,7 +637,6 @@ layout: two-cols-header
 </v-click>
 
 ---
-
 
 # 실제 용도는...
 
@@ -663,17 +670,19 @@ layout: section
 ---
 
 # Radix-ui 패키지 소개
+
 Children과 Context-API를 적극 활용하는 UI 패키지
 
 ---
 
-# Radix UI의 Context 활용 패턴
+# Radix UI에서의 활용법
 
 <v-click>
 
 <br />
 
 ### 1. `import { Slot } from '@radix-ui/react-slot';`
+
 컴포넌트의 루트 엘리먼트를 다른 엘리먼트로 병합
 
 ```tsx
@@ -685,7 +694,7 @@ Children과 Context-API를 적극 활용하는 UI 패키지
 
 ```tsx
 // 렌더링 결과
-<p className='flex ...'>슬롯 예시</p>
+<p className="flex ...">슬롯 예시</p>
 ```
 
 </v-click>
@@ -695,6 +704,7 @@ Children과 Context-API를 적극 활용하는 UI 패키지
 <br />
 
 ### 2. `import { createContextScope } from '@radix-ui/react-context';`
+
 여러 Context가 중첩될 때 올바른 Context를 찾아오는 유틸
 
 </v-click>
