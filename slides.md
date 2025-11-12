@@ -586,10 +586,84 @@ function App() {
 ></iframe>
 
 ---
+layout: two-cols-header
+---
+
+# 장단점 비교
+
+<br />
+
+::left::
+
+### `useCallback` • `useMemo` • `memo`
+
+<v-click>
+
+- **장점**
+
+  - 간단한 사용법
+
+<br />
+
+- **단점**
+  - 코드 가독성 떨어짐
+  - 비교 연산이 들어가기에 오히려 성능 악화될 가능성 존재
+
+</v-click>
+
+::right::
+
+### `Children + Context API`
+
+<v-click>
+
+- **장점**
+
+  - 리액트의 자연스러운 흐름대로 최적화 가능
+
+<br />
+
+- **단점**
+  - 컴포넌트, 코드 스플릿팅이 많아짐
+  - Context-API의 보잁러 플레이트가 존재함
+
+</v-click>
+
+---
+
+
+# 실제 용도는...
+
+사실은 useCallback • useMemo • memo, Children, Context API는 용도가 다르긴함
+
+- `useCallback` • `useMemo` • `memo`
+  - 메모제이션 하기 위함
+
+<br />
+
+- `Childern`
+  - 컴포넌트 합성(Composition)을 위한 기능
+
+<br />
+
+- `Context API`
+  - props drilling 드릴링을 막기위한 API
+
+<br />
+
+<v-click>
+
+<div class="mt-4 p-3 bg-green-500/10 rounded border-l-4 border-green-500">
+  결론: 상황에 맞게 적절히 사용하자
+</div>
+
+</v-click>
+
+---
 layout: section
 ---
 
-# Radix-ui
+# Radix-ui 패키지 소개
 Children과 Context-API를 적극 활용하는 UI 패키지
 
 ---
