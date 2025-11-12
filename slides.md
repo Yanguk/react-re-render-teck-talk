@@ -625,7 +625,7 @@ layout: two-cols-header
 
 - **단점**
   - 컴포넌트, 코드 스플릿팅이 많아짐
-  - Context-API의 보잁러 플레이트가 존재함
+  - Context-API의 보일러 플레이트가 존재함
 
 </v-click>
 
