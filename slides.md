@@ -131,7 +131,6 @@ const ExpensiveComponent = React.memo(({ data }) => {
   return (
     <div>
       <h3>{processedData}</h3>
-      <button onClick={onClick}>Click me</button>
     </div>
   );
 });
